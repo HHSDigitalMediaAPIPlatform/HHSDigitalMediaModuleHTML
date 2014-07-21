@@ -129,6 +129,9 @@ var CDCContentSynd = function() {
     }
 
     var foundSelectedTitle = false;
+    titleSelect.append($("<option></option>")
+        .attr("value", "")
+        .text("Select Title"));
     for (var i = 0; i < response.results.length; i++) {
       var titleSelect = $('#cdccs_title');
 
@@ -171,7 +174,7 @@ var CDCContentSynd = function() {
       previewError();
     }
     loadingPreview(false);
-    $('#cdccs_preview').html(htmlDecode(response.results.content));
+    $('#cdccs_preview').html(response.results.content);
     showHideContentTitleDesc();
   };
 
