@@ -8,18 +8,26 @@ var CDCContentSynd = function() {
       "mediaTypesUrl" : "", 
       "mediaByTopicsUrl" : "", 
       "mediaByTopicsUrlTopicsDelim" : "", 
-      "mediaUrl" : ""
+      "mediaUrl" : "",
+      "urlContainsUrl" : ""
   },
   {
     "label" : "CDC", 
     "value" : "CDC", 
-    "topicsUrl" : "https://tools.cdc.gov/api/v1/resources/topics.jsonp?showchild=true&max=0", 
-    "mediaTypesUrl" : "https://tools.cdc.gov/api/v1/resources/mediatypes?max=0", 
-    "mediaByTopicsUrl" : "https://tools.cdc.gov/api/v1/resources/media?topicid={topicids}&mediatype={mediatype}&sort=-dateModified&max=0", 
-    "mediaByTopicsUrlAllTypes" : "https://tools.cdc.gov/api/v1/resources/media?topicid={topicids}&&sort=-dateModified&max=0", 
-    "mediaUrl" : "https://tools.cdc.gov/api/v1/resources/media/{mediaid}/syndicate"
+    //"topicsUrl" : "https://nchm-tvss1-srv.cdc.gov/api/v1/resources/topics.jsonp?showchild=true&max=0", 
+    //"mediaTypesUrl" : "https://nchm-tvss1-srv.cdc.gov/api/v1/resources/mediatypes?max=0", 
+    //"mediaByTopicsUrl" : "https://nchm-tvss1-srv.cdc.gov/api/v1/resources/media?topicid={topicids}&mediatype={mediatype}&sort=-dateModified&max=0", 
+    //"mediaByTopicsUrlAllTypes" : "https://nchm-tvss1-srv.cdc.gov/api/v1/resources/media?topicid={topicids}&&sort=-dateModified&max=0", 
+    //"mediaUrl" : "https://nchm-tvss1-srv.cdc.gov/api/v1/resources/media/{mediaid}/syndicate"
+    "topicsUrl" : "http://t.cdc.gov/api/v2/resources/topics.jsonp?showchild=true&max=0", 
+    "mediaTypesUrl" : "http://t.cdc.gov/api/v2/resources/mediatypes?max=0", 
+    "mediaByTopicsUrl" : "http://t.cdc.gov/api/v2/resources/media?topicid={topicids}&mediatype={mediatype}&sort=-dateModified&max=0", 
+    "mediaByTopicsUrlAllTypes" : "http://t.cdc.gov/api/v2/resources/media?topicid={topicids}&&sort=-dateModified&max=0", 
+    "mediaUrl" : "http://t.cdc.gov/api/v2/resources/media/{mediaid}/syndicate",
+    "urlContainsUrl" : "http://t.cdc.gov/api/v2/resources/media?sourceUrlContains={urlcontains}&fields=id,sourceUrl&max=30"
   }
   ];
+  var previewMediaId = '';
   var selectedSourceData = new Object();
 
   //Selector Definitions
@@ -35,8 +43,19 @@ var CDCContentSynd = function() {
   var cdccs_stripinlinestyles = '#cdccs_stripinlinestyles';
   var cdccs_stripscripts = '#cdccs_stripscripts';
   var cdccs_encoding = '#cdccs_encoding';
+  var cdccs_stripbreaks = '#cdccs_stripbreaks';
+  var cdccs_imagefloat = '#cdccs_imagefloat';
+  var cdccs_cssclasses = '#cdccs_cssclasses';
+  var cdccs_ids = '#cdccs_ids';
+  var cdccs_xpath = '#cdccs_xpath';
+  var cdccs_namespace = '#cdccs_namespace';
+  var cdccs_linkssamewindow = '#cdccs_linkssamewindow';
+  var cdccs_width = '#cdccs_width';
+  var cdccs_height = '#cdccs_height';
 
   var init = function() {
+    $('#searchbymetadata').hide();
+    $('#searchbyurl').hide();
     //Set source data here.
     for (var i = 0; i < sourceData.length; i++) {
       $('#cdccs_source')
@@ -50,17 +69,28 @@ var CDCContentSynd = function() {
     $('#cdccs_title').change(handleTitleChange);
     $('#cdccs_fromdate').change(handleFromDateChange);
     $('#cdccs_mediatypes').change(handleMediaTypeChange);
-    $('#cdccs_stripimages').change(handleTitleChange);
-    $('#cdccs_stripanchors').change(handleTitleChange);
-    $('#cdccs_stripcomments').change(handleTitleChange);
-    $('#cdccs_stripinlinestyles').change(handleTitleChange);
-    $('#cdccs_stripscripts').change(handleTitleChange);
-    $('input[name="cdccs_hidetitle"]').change(showHideContentTitleDesc);
-    $('input[name="cdccs_hidedescription"]').change(showHideContentTitleDesc);
-    $('#cdccs_encoding').change(handleTitleChange);
+    $('#cdccs_stripimages').change(handleDisplayOptionChanged);
+    $('#cdccs_stripanchors').change(handleDisplayOptionChanged);
+    $('#cdccs_stripcomments').change(handleDisplayOptionChanged);
+    $('#cdccs_stripinlinestyles').change(handleDisplayOptionChanged);
+    $('#cdccs_stripscripts').change(handleDisplayOptionChanged);
+    $('#cdccs_encoding').change(handleDisplayOptionChanged);
+    $('#cdccs_stripbreaks').change(handleDisplayOptionChanged);
+    $('#cdccs_imagefloat').change(handleDisplayOptionChanged);
+    $('#cdccs_cssclasses').change(handleDisplayOptionChanged);
+    $('#cdccs_ids').change(handleDisplayOptionChanged);
+    $('#cdccs_xpath').change(handleDisplayOptionChanged);
+    $('#cdccs_namespace').change(handleDisplayOptionChanged);
+    $('#cdccs_linkssamewindow').change(handleDisplayOptionChanged);
+    $('#cdccs_width').change(handleDisplayOptionChanged);
+    $('#cdccs_height').change(handleDisplayOptionChanged);
+    $('input[name="cdccs_searchtype"]').change(handleSearchTypeChange);
+
+    initUrlSearchField(); 
 
     handleSourceChange(); //To kick off loading of all fields based on previous saved settings
   };
+
 
   var topicsCallback = function(response) {
     if (!response || !response.results || response.results.length < 1) {
@@ -142,17 +172,17 @@ var CDCContentSynd = function() {
         }
       }
 
-      if (response.results[i].mediaId === selectedTitle.val()) {
+      if (response.results[i].id == selectedTitle.val()) {
         titleSelect.append($("<option></option>")
-            .attr("value", response.results[i].mediaId)
-            .text(response.results[i].title)
+            .attr("value", response.results[i].id)
+            .text(response.results[i].name)
             .attr('selected', true));
         foundSelectedTitle = true;
       }
       else {
         titleSelect.append($("<option></option>")
-            .attr("value", response.results[i].mediaId)
-            .text(response.results[i].title));
+            .attr("value", response.results[i].id)
+            .text(response.results[i].name));
       }
 
     }
@@ -175,7 +205,6 @@ var CDCContentSynd = function() {
     }
     loadingPreview(false);
     $('#cdccs_preview').html(response.results.content);
-    showHideContentTitleDesc();
   };
 
   var handleSourceChange = function () {
@@ -233,81 +262,86 @@ var CDCContentSynd = function() {
   };
 
   var handleTitleChange = function () {
-    var selectedTitle = $('#cdccs_title option:selected').val();
-    if (selectedTitle === "") {
+    previewMediaId = $('#cdccs_title option:selected').val();
+    if (previewMediaId === "") {
       clearPreview();
       return;
     }
-    loadingPreview(true);
-    var mediaUrl = selectedSourceData.mediaUrl;
-    mediaUrl = mediaUrl.replace("{mediaid}", selectedTitle);
-    var configParams = getConfigureParamsAsQueryString();
-    if (configParams) {
-      if (mediaUrl.indexOf("?") > 0) {
-        mediaUrl = mediaUrl + "&" + configParams;
-      } 
-      else {
-        mediaUrl = mediaUrl + "?" + configParams;
-      }
-    }
-
-    $.ajaxSetup({cache:false});
-    $.ajax({
-      url: mediaUrl,
-      dataType: "jsonp",
-      success: mediaCallback,
-      error: function(xhr, ajaxOptions, thrownError) {
-        previewError();
-      }
-    }); 
+    loadPreviewForMediaId(previewMediaId);
   };
 
   var getConfigureParamsAsQueryString = function () {
     var queryString = "";
     var delim = "";
-    //TODO: Need to figure out how to support this w/ all sources, not just CDC.
     if ($('#cdccs_stripimages').prop('checked')) {
-      queryString += delim + "stripImage=true";
+      queryString += delim + "stripImages=true";
       delim = "&";
     }
     if ($('#cdccs_stripscripts').prop('checked')) {
-      queryString += delim + "stripScript=true"; //TODO: Need to figure if this is supported w/ API
+      queryString += delim + "stripScripts=true";
       delim = "&";
     }
     if ($('#cdccs_stripanchors').prop('checked')) {
-      queryString += delim + "stripAnchor=true";
+      queryString += delim + "stripAnchors=true";
       delim = "&";
     }
     if ($('#cdccs_stripcomments').prop('checked')) {
-      queryString += delim + "stripComment=true"; //TODO: Need to figure if this is supported w/ API
+      queryString += delim + "stripComments=true";
       delim = "&";
     }
     if ($('#cdccs_stripinlinestyles').prop('checked')) {
-      queryString += delim + "stripStyle=true";
+      queryString += delim + "stripStyles=true";
       delim = "&";
     }
     var encoding = $('#cdccs_encoding option:selected').val();
     if (encoding) {
       queryString += delim + "oe=" + encoding;
-      delim = "&"
+      delim = "&";
+    }
+    if ($('#cdccs_stripbreaks').prop('checked')) {
+      queryString += delim + "stripBreaks=true";
+      delim = "&";
+    }
+    var imageFloat = $('#cdccs_imagefloat option:selected').val();
+    if (imageFloat) {
+      queryString += delim + "imageFloat=" + imageFloat;
+      delim = "&";
+    }
+    var cssClasses = $('#cdccs_cssclasses').val();
+    if (cssClasses !== '') {
+      queryString += delim + "cssClasses=" + cssClasses;
+      delim = "&";
+    }
+    var elementIds = $('#cdccs_ids').val();
+    if (elementIds !== '') {
+      queryString += delim + "ids=" + elementIds;
+      delim = "&";
+    }
+    var xpath = $('#cdccs_xpath').val();
+    if (xpath !== '') {
+      queryString += delim + "xpath=" + xpath;
+      delim = "&";
+    }
+    var namespace = $('#cdccs_namespace').val();
+    if (namespace !== '') {
+      queryString += delim + "ns=" + namespace;
+      delim = "&";
+    }
+    if ($('#cdccs_linkssamewindow').prop('checked')) {
+      queryString += delim + "nw=false";
+      delim = "&";
+    }
+    var width = $('#cdccs_width').val();
+    if (width !== '') {
+      queryString += delim + "w=" + width;
+      delim = "&";
+    }
+    var height = $('#cdccs_height').val();
+    if (height !== '') {
+      queryString += delim + "h=" + height;
+      delim = "&";
     }
     return queryString;
-  };
-
-  var showHideContentTitleDesc = function () {
-    var mediaId = $('#cdccs_title option:selected').val();
-    if ($('input[name="cdccs_hidetitle"]').prop('checked')) {
-      $('span[id="cdc_title_' + mediaId + '"]').hide();
-    }
-    else {
-      $('span[id="cdc_title_' + mediaId + '"]').show();
-    }
-    if ($('input[name="cdccs_hidedescription"]').prop('checked')) {
-      $('p[id="cdc_description_' + mediaId + '"]').hide();
-    }
-    else {
-      $('p[id="cdc_description_' + mediaId + '"]').show();
-    }
   };
 
   var noTitlesFound = function () {
@@ -350,12 +384,6 @@ var CDCContentSynd = function() {
     }
 
     mediaUrl = mediaUrl.replace("{topicids}", selectedTopicIds.join(delim));
-    if (mediaUrl.indexOf("?") > 0) {
-      mediaUrl = mediaUrl + "&";
-    } 
-    else {
-      mediaUrl = mediaUrl + "?";
-    }
 
     $.ajaxSetup({cache:false});
     $.ajax({
@@ -382,7 +410,7 @@ var CDCContentSynd = function() {
 
   var parseFromDate = function (fromDate) {
     //TODO: Need to handle bad date fromat b/c this is coming from API
-    var parts = fromDate.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/);
+    var parts = fromDate.match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z/);
     return new Date(+parts[1], parts[2]-1, +parts[3], +parts[4], +parts[5], +parts[6]);
   };
 
@@ -448,6 +476,114 @@ var CDCContentSynd = function() {
       $('#cdccs_preview').html('');
     }
   };
+
+  //############## Start New For Version 1.1
+  var initUrlSearchField = function() {
+    $('#cdccs_url').autocomplete({
+      source: function (req, add) {
+        //TODO: Need better method for not making ajax calls based on a number of 'too generic' urls like http:// http://www.cdc.gov, http://www, etc. Maybe some regex?
+        if ('http://'.indexOf(req['term']) == 0) {
+          return;
+        }
+        var urlContainsUrl = selectedSourceData.urlContainsUrl.replace('{urlcontains}', req['term']);
+
+        $.ajax({
+          url: urlContainsUrl,
+          dataType: 'jsonp',
+          type: 'GET',
+          success: function(response){
+            var suggestions = [];
+            
+            if (!response || !response.results || response.results.length < 1) {
+              return;
+            }
+
+            for (var i = 0; i < response.results.length; i++) {
+              if (i == 25) {
+                suggestions.push({label: 'Many More Results Found, Type More to Narrow Search.....', value: ''});
+                break;
+              }
+              var result = response.results[i];
+              suggestions.push({label: result.sourceUrl, value: result.id}); 
+            }
+
+            add(suggestions);
+
+          },
+          error:function(jqXHR, textStatus, errorThrown){
+            if (window.console) {
+              console.log('error making call to fetch media by url');
+              console.log(errorThrown);
+            }
+          }
+
+        });
+      },
+      minLength: 3,
+      select: function(event, ui) {
+        handleUrlSelect(event, ui);
+      },
+      focus: function(event, ui) {
+        event.preventDefault();
+      }
+    }); 
+  };
+
+  var handleUrlSelect = function(event, ui) {
+    event.preventDefault();
+    var urlField = $('#cdccs_url');
+    previewMediaId = ui.item.value;
+    urlField.val(ui.item.label);
+
+    if (previewMediaId !== '') {
+      loadPreviewForMediaId(previewMediaId);
+    }
+    return false;
+  };
+
+  var handleDisplayOptionChanged = function() {
+    loadPreviewForMediaId(previewMediaId);
+  }
+
+  var loadPreviewForMediaId = function(mediaId) {
+    loadingPreview(true);
+    var mediaUrl = selectedSourceData.mediaUrl;
+    mediaUrl = mediaUrl.replace("{mediaid}", mediaId);
+    var configParams = getConfigureParamsAsQueryString();
+    if (configParams) {
+      if (mediaUrl.indexOf("?") > 0) {
+        mediaUrl = mediaUrl + "&" + configParams;
+      } 
+      else {
+        mediaUrl = mediaUrl + "?" + configParams;
+      }
+    }
+
+    $.ajaxSetup({cache:false});
+    $.ajax({
+      url: mediaUrl,
+      dataType: "jsonp",
+      success: mediaCallback,
+      error: function(xhr, ajaxOptions, thrownError) {
+        previewError();
+      }
+    }); 
+  }
+
+  var handleSearchTypeChange = function() {
+    var searchTypeVal = $(this).val();
+    if ($(this).is(':checked') && searchTypeVal === 'metadata') {
+      $('#searchbymetadata').show();
+      $('#searchbyurl').hide();
+    } 
+    else if ($(this).is(':checked') && searchTypeVal === 'url') {
+      $('#searchbymetadata').hide();
+      $('#searchbyurl').show();
+    }
+  }
+
+  //############## End New For Version 1.1
+
 
   //Initialize
   init();

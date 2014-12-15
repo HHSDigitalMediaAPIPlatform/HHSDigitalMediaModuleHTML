@@ -1,89 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>Test CMS Content Picker</title>
-        <link rel="stylesheet" href="css/tree/style.css" />
-        <script src="js/jquery-1.9.1.js"></script>
-        <script src="js/jstree.js"></script>
-        <script src="js/jquery.maskedinput.js"></script>
-        <script src="js/module.js"></script>
+  <head>
+    <meta charset="utf-8">
+    <title>Test CMS Content Picker</title>
+    <link rel="stylesheet" href="css/jquery-ui.css" />
+    <link rel="stylesheet" href="css/tree/style.css" />
+    <script src="js/jquery-1.9.1.js"></script>
+    <script src="js/jstree.js"></script>
+    <script src="js/jquery.maskedinput.js"></script>
+    <script src="js/module.js"></script>
+    <script src="js/jquery-ui.js"></script>
 
-        <style>
-            form div {
-                margin-bottom: 10px;
-            }
-        </style>
-    </head>
-    <body>
-        <noscript>Javascript is required for this to function properly</noscript>
-        <h3>Search For Content</h3>
-        <form id="cdccs_contentpicker" action="#" method="post">
-            <div>
-                <label for="cdccs_source">Source:</label>
-                <select id="cdccs_source" name="cdccs_source">
-                </select>
-            </div>
-            <div>
-                <label for="cdccs_fromdate">From Date:</label>
-                <input type="text" id="cdccs_fromdate" name="cdccs_fromdate"/>
-            </div>
-            <div>
-                <label for="cdccs_mediatypes">Media Types:</label>
-                <select id="cdccs_mediatypes" name="cdccs_mediatypes" multiple>
-                </select>
-            </div>
-            <div>
-                <span>Topics:</span>
-                <div id="cdccs_topictree">
-                </div>
-            </div>
-            <div>
-                <label for="cdccs_title">Title:</label>
-                <select id="cdccs_title" name="cdccs_title">
-                </select>
-            </div>
-        </form>
-        <h3>Content Display Options (all optional)</h3>
-        <form id="cdccs_displayoptions" action="#" method="post">
-            <div>
-                <label for="cdccs_stripimages">Strip Images:</label>
-                <input type="checkbox" id="cdccs_stripimages" name="cdccs_stripimages"/>
-            </div>    
-            <div>
-                <label for="cdccs_stripscripts">Strip Scripts:</label>
-                <input type="checkbox" id="cdccs_stripscripts" name="cdccs_stripscripts"/>
-            </div>    
-            <div>
-                <label for="cdccs_stripanchors">Strip Anchors:</label>
-                <input type="checkbox" id="cdccs_stripanchors" name="cdccs_stripanchors"/>
-            </div>    
-            <div>
-                <label for="cdccs_stripcomments">Strip Comments:</label>
-                <input type="checkbox" id="cdccs_stripcomments" name="cdccs_stripcomments"/>
-            </div>    
-            <div>
-                <label for="cdccs_stripinlinestyles">Strip Inline Styles:</label>
-                <input type="checkbox" id="cdccs_stripinlinestyles" name="cdccs_stripinlinestyles"/>
-            </div>    
-            <div>
-                <label for="cdccs_hidetitle">Hide Title</label>
-                <input type="checkbox" id="cdccs_hidetitle" name="cdccs_hidetitle"/>
-            </div>    
-            <div>
-                <label for="cdccs_hidedescription">Hide Description</label>
-                <input type="checkbox" id="cdccs_hidedescription" name="cdccs_hidedescription"/>
-            </div>    
-            <div>
-                <label for="cdccs_encoding">Encoding</label>
-                <select id="cdccs_encoding" name="cdccs_encoding">
-                    <option value="">Default</option>
-                    <option value="utf-8">UTF-8</option>
-                    <option value="iso-8859-1">iso-8859-1</option>
-                </select>
-            </div>    
-        </form>
-        <h3>Content Preview</h3>
-        <div id="cdccs_preview"></div>
-    </body>
+    <style>
+      form div {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>Javascript is required for this to function properly</noscript>
+    <h3>Search For Content</h3>
+    <form id="cdccs_contentpicker" action="#" method="post">
+      <h5>Select Content Source</h5>
+      <div>
+        <label for="cdccs_source">Source:</label>
+        <select id="cdccs_source" name="cdccs_source">
+        </select>
+      </div>
+      <h5>Select Search Type</h5>
+      <div>
+        <label for="cdccs_searchtype">Search By:</label>
+        <input type="radio" name="cdccs_searchtype" value="metadata"/>Metadata
+        <input type="radio" name="cdccs_searchtype" value="url"/>Url
+      </div>
+      <div id="searchbymetadata">
+        <h5>Search By Metadata</h5>
+        <div>
+          <label for="cdccs_fromdate">From Date:</label>
+          <input type="text" id="cdccs_fromdate" name="cdccs_fromdate"/>
+        </div>
+        <div>
+          <label for="cdccs_mediatypes">Media Types:</label>
+          <select id="cdccs_mediatypes" name="cdccs_mediatypes" multiple>
+          </select>
+        </div>
+        <div>
+          <span>Topics:</span>
+          <div id="cdccs_topictree">
+          </div>
+        </div>
+        <label for="cdccs_title">Title:</label>
+        <select id="cdccs_title" name="cdccs_title">
+        </select>
+      </div>
+      <div id="searchbyurl">
+        <h5>Search By Url</h5>
+        <div>
+          <label for="cdccs_url">Url Contains:</label>
+          <input type="text" id="cdccs_url" name="cdccs_url"/>
+        </div>
+      </div>
+    </form>
+    <h3>Content Display Options (all optional)</h3>
+    <form id="cdccs_displayoptions" action="#" method="post">
+      <div>
+        <label for="cdccs_stripimages">Strip Images:</label>
+        <input type="checkbox" id="cdccs_stripimages" name="cdccs_stripimages"/>
+      </div>    
+      <div>
+        <label for="cdccs_stripscripts">Strip Scripts:</label>
+        <input type="checkbox" id="cdccs_stripscripts" name="cdccs_stripscripts"/>
+      </div>    
+      <div>
+        <label for="cdccs_stripanchors">Strip Anchors:</label>
+        <input type="checkbox" id="cdccs_stripanchors" name="cdccs_stripanchors"/>
+      </div>    
+      <div>
+        <label for="cdccs_stripcomments">Strip Comments:</label>
+        <input type="checkbox" id="cdccs_stripcomments" name="cdccs_stripcomments"/>
+      </div>    
+      <div>
+        <label for="cdccs_stripinlinestyles">Strip Inline Styles:</label>
+        <input type="checkbox" id="cdccs_stripinlinestyles" name="cdccs_stripinlinestyles"/>
+      </div>    
+      <div>
+        <label for="cdccs_stripbreaks">Strip Breaks:</label>
+        <input type="checkbox" id="cdccs_stripbreaks" name="cdccs_stripbreaks"/>
+      </div>    
+      <div>
+        <label for="cdccs_imagefloat">Image Float:</label>
+        <select id="cdccs_imagefloat" name="cdccs_imagefloat">
+          <option value="">Default</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>    
+      <div>
+        <label for="cdccs_cssclasses">CSS Classes (comma separated):</label>
+        <input type="text" id="cdccs_cssclasses" name="cdccs_cssclasses"/>
+      </div>
+      <div>
+        <label for="cdccs_ids">Element Ids (comma separated):</label>
+        <input type="text" id="cdccs_ids" name="cdccs_ids"/>
+      </div>
+      <div>
+        <label for="cdccs_xpath">XPath:</label>
+        <input type="text" id="cdccs_xpath" name="cdccs_xpath"/>
+      </div>
+      <div>
+        <label for="cdccs_namespace">Namespace Prefix:</label>
+        <input type="text" id="cdccs_namespace" name="cdccs_namespace"/>
+      </div>
+      <div>
+        <label for="cdccs_linkssamewindow">Links Open Same Window:</label>
+        <input type="checkbox" id="cdccs_linkssamewindow" name="cdccs_linkssamewindow"/>
+      </div>    
+      <div>
+        <label for="cdccs_width">Width:</label>
+        <input type="text" id="cdccs_width" name="cdccs_width"/>
+      </div>
+      <div>
+        <label for="cdccs_height">Height:</label>
+        <input type="text" id="cdccs_height" name="cdccs_height"/>
+      </div>
+      <div>
+        <label for="cdccs_https">Use HTTPS</label>
+        <input type="checkbox" id="cdccs_https" name="cdccs_https"/>
+      </div>    
+      <div>
+        <label for="cdccs_encoding">Encoding</label>
+        <select id="cdccs_encoding" name="cdccs_encoding">
+          <option value="">Default</option>
+          <option value="utf-8">UTF-8</option>
+          <option value="iso-8859-1">iso-8859-1</option>
+        </select>
+      </div>    
+    </form>
+    <h3>Content Preview</h3>
+    <div id="cdccs_preview"></div>
+  </body>
 </html> 
